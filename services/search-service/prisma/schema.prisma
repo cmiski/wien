@@ -1,0 +1,32 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Denormalized search index — synced via RabbitMQ events
+model SearchIndex {
+  id          String     @id @default(uuid())
+  sourceId    String     @map("source_id")     // original record ID
+  sourceType  SourceType @map("source_type")
+  title       String
+  description String?
+  tags        String[]
+  metadata    Json?      // extra fields for filtering
+  isActive    Boolean    @default(true) @map("is_active")
+  indexedAt   DateTime   @default(now()) @map("indexed_at")
+  updatedAt   DateTime   @updatedAt @map("updated_at")
+
+  @@unique([sourceId, sourceType])
+  @@index([sourceType])
+  @@index([isActive])
+  @@map("search_index")
+}
+
+enum SourceType {
+  EVENT
+  USER
+}

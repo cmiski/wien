@@ -1,0 +1,11 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "rootDir": "./src",
+    "paths": {
+      "@api-gateway-ms/shared": ["../../packages/shared/src"]
+    }
+  },
+  "include": ["src/**/*"]
+}
