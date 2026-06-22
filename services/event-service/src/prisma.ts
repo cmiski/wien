@@ -1,4 +1,4 @@
-import { PrismaClient } from '@api-gateway-ms/user-prisma-client';
+import { PrismaClient } from '@api-gateway-ms/event-prisma-client';
 import { config } from './config';
 
 export const prisma = new PrismaClient({

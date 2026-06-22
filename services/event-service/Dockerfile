@@ -33,6 +33,7 @@ RUN npm ci --workspace=packages/shared --workspace=services/event-service --omit
 COPY --from=builder /app/packages/shared/dist ./packages/shared/dist
 COPY --from=builder /app/services/event-service/dist ./services/event-service/dist
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
+COPY --from=builder /app/node_modules/@api-gateway-ms/event-prisma-client ./node_modules/@api-gateway-ms/event-prisma-client
 COPY services/event-service/prisma ./services/event-service/prisma
 
 EXPOSE 3002

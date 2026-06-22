@@ -34,6 +34,7 @@ docker-compose.override.yml
 
 # Prisma
 prisma/migrations/
+services/*/src/generated/
 
 # Test coverage
 coverage/

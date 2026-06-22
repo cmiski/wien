@@ -1,4 +1,4 @@
-import type { User as PrismaUser } from '@prisma/client';
+import type { User as PrismaUser } from '@api-gateway-ms/user-prisma-client';
 import { UserPublic, UserRole } from '@api-gateway-ms/shared';
 
 const toUserRole = (role: PrismaUser['role']): UserRole => {

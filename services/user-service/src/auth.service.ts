@@ -1,6 +1,6 @@
 import bcrypt from 'bcryptjs';
 import jwt, { SignOptions } from 'jsonwebtoken';
-import type { User } from '@prisma/client';
+import type { User } from '@api-gateway-ms/user-prisma-client';
 import {
   AuthTokens,
   ConflictError,

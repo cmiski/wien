@@ -2,7 +2,12 @@ import { Router, Request, Response } from 'express';
 import axios from 'axios';
 import { serviceRegistry } from '../registry';
 import { getBreakerStats } from '../circuit-breaker';
-import { gatewayEnvSchema, HealthStatus, loadConfig } from '@api-gateway-ms/shared';
+import {
+  asyncHandler,
+  gatewayEnvSchema,
+  HealthStatus,
+  loadConfig,
+} from '@api-gateway-ms/shared';
 
 const router = Router();
 const startTime = Date.now();
@@ -31,7 +36,7 @@ router.get('/health', (_req: Request, res: Response) => {
 });
 
 /** GET /health/detailed - gateway + all downstream services */
-router.get('/health/detailed', async (_req: Request, res: Response) => {
+router.get('/health/detailed', asyncHandler(async (_req: Request, res: Response) => {
   const checks = await Promise.all(
     Object.values(serviceRegistry).map(async (svc) => ({
       [svc.name]: await pingService(svc.url, svc.healthPath),
@@ -57,6 +62,6 @@ router.get('/health/detailed', async (_req: Request, res: Response) => {
     dependencies,
     circuitBreakers: getBreakerStats(),
   });
-});
+}));
 
 export default router;

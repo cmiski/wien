@@ -12,20 +12,32 @@ declare global {
   }
 }
 
-export const authenticate = (
+export const optionalAuthenticate = (
   req: Request,
   _res: Response,
   next: NextFunction
 ): void => {
   const authHeader = req.headers.authorization;
-  if (!authHeader?.startsWith('Bearer ')) {
-    throw new UnauthorizedError('Missing or malformed Authorization header');
+  if (authHeader?.startsWith('Bearer ')) {
+    try {
+      req.user = jwt.verify(authHeader.slice(7), config.JWT_SECRET) as JwtPayload;
+    } catch {
+      req.user = undefined;
+    }
   }
 
-  try {
-    req.user = jwt.verify(authHeader.slice(7), config.JWT_SECRET) as JwtPayload;
+  next();
+};
+
+export const authenticate = (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): void => {
+  optionalAuthenticate(req, res, () => {
+    if (!req.user) {
+      throw new UnauthorizedError('Authentication required');
+    }
     next();
-  } catch {
-    throw new UnauthorizedError('Invalid token');
-  }
+  });
 };

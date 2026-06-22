@@ -33,6 +33,7 @@ RUN npm ci --workspace=packages/shared --workspace=services/user-service --omit=
 COPY --from=builder /app/packages/shared/dist ./packages/shared/dist
 COPY --from=builder /app/services/user-service/dist ./services/user-service/dist
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
+COPY --from=builder /app/node_modules/@api-gateway-ms/user-prisma-client ./node_modules/@api-gateway-ms/user-prisma-client
 COPY services/user-service/prisma ./services/user-service/prisma
 
 EXPOSE 3001
