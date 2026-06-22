@@ -8,20 +8,22 @@ import proxyRoutes from './routes/proxy.routes';
 import { correlationMiddleware, requestLogger } from './middleware/correlation.middleware';
 import { generalRateLimiter } from './middleware/rate-limit.middleware';
 import { errorHandler, notFoundHandler } from './middleware/error.middleware';
+import { gatewayEnvSchema, loadConfig } from '@api-gateway-ms/shared';
 
 const app = express();
+const config = loadConfig(gatewayEnvSchema);
 
 app.set('trust proxy', 1);
 
 app.use(helmet());
 app.use(
   cors({
-    origin: process.env.CORS_ORIGIN ?? '*',
+    origin: config.CORS_ORIGIN,
     credentials: true,
   })
 );
 app.use(compression());
-app.use(express.json({ limit: process.env.JSON_BODY_LIMIT ?? '1mb' }));
+app.use(express.json({ limit: '1mb' }));
 app.use(express.urlencoded({ extended: true }));
 app.use(correlationMiddleware);
 app.use(requestLogger);

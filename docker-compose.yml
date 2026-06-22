@@ -19,9 +19,9 @@ services:
     image: postgres:16-alpine
     container_name: postgres-user
     environment:
-      POSTGRES_USER: ${POSTGRES_USER:-postgres}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres123}
-      POSTGRES_DB: user_db
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${USER_DB_NAME}
     volumes:
       - postgres_user_data:/var/lib/postgresql/data
     ports:
@@ -29,7 +29,7 @@ services:
     networks:
       - microservices-net
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d user_db"]
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -38,9 +38,9 @@ services:
     image: postgres:16-alpine
     container_name: postgres-event
     environment:
-      POSTGRES_USER: ${POSTGRES_USER:-postgres}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres123}
-      POSTGRES_DB: event_db
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${EVENT_DB_NAME}
     volumes:
       - postgres_event_data:/var/lib/postgresql/data
     ports:
@@ -48,7 +48,7 @@ services:
     networks:
       - microservices-net
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d event_db"]
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -57,9 +57,9 @@ services:
     image: postgres:16-alpine
     container_name: postgres-notification
     environment:
-      POSTGRES_USER: ${POSTGRES_USER:-postgres}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres123}
-      POSTGRES_DB: notification_db
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${NOTIFICATION_DB_NAME}
     volumes:
       - postgres_notification_data:/var/lib/postgresql/data
     ports:
@@ -67,7 +67,7 @@ services:
     networks:
       - microservices-net
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d notification_db"]
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -76,9 +76,9 @@ services:
     image: postgres:16-alpine
     container_name: postgres-search
     environment:
-      POSTGRES_USER: ${POSTGRES_USER:-postgres}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-postgres123}
-      POSTGRES_DB: search_db
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${SEARCH_DB_NAME}
     volumes:
       - postgres_search_data:/var/lib/postgresql/data
     ports:
@@ -86,7 +86,7 @@ services:
     networks:
       - microservices-net
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres} -d search_db"]
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -94,7 +94,7 @@ services:
   redis:
     image: redis:7-alpine
     container_name: redis
-    command: redis-server --requirepass ${REDIS_PASSWORD:-redis123}
+    command: redis-server --requirepass ${REDIS_PASSWORD}
     ports:
       - "6379:6379"
     volumes:
@@ -102,7 +102,7 @@ services:
     networks:
       - microservices-net
     healthcheck:
-      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD:-redis123}", "ping"]
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -111,9 +111,9 @@ services:
     image: rabbitmq:3.13-management-alpine
     container_name: rabbitmq
     environment:
-      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER:-admin}
-      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD:-rabbit123}
-      RABBITMQ_DEFAULT_VHOST: ${RABBITMQ_VHOST:-/}
+      RABBITMQ_DEFAULT_USER: ${RABBITMQ_USER}
+      RABBITMQ_DEFAULT_PASS: ${RABBITMQ_PASSWORD}
+      RABBITMQ_DEFAULT_VHOST: ${RABBITMQ_VHOST}
     ports:
       - "5672:5672"
       - "15672:15672"   # Management UI
@@ -136,13 +136,13 @@ services:
     container_name: api-gateway
     env_file: .env
     environment:
-      PORT: ${API_GATEWAY_PORT:-3000}
-      USER_SERVICE_URL: http://user-service:3001
-      EVENT_SERVICE_URL: http://event-service:3002
-      NOTIFICATION_SERVICE_URL: http://notification-service:3003
-      SEARCH_SERVICE_URL: http://search-service:3004
+      PORT: ${API_GATEWAY_PORT}
+      USER_SERVICE_URL: ${USER_SERVICE_URL}
+      EVENT_SERVICE_URL: ${EVENT_SERVICE_URL}
+      NOTIFICATION_SERVICE_URL: ${NOTIFICATION_SERVICE_URL}
+      SEARCH_SERVICE_URL: ${SEARCH_SERVICE_URL}
     ports:
-      - "${API_GATEWAY_PORT:-3000}:3000"
+      - "${API_GATEWAY_PORT}:${API_GATEWAY_PORT}"
     networks:
       - microservices-net
     depends_on:
@@ -159,10 +159,10 @@ services:
     container_name: user-service
     env_file: .env
     environment:
-      PORT: ${USER_SERVICE_PORT:-3001}
-      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres123}@postgres-user:5432/user_db
+      PORT: ${USER_SERVICE_PORT}
+      DATABASE_URL: ${USER_DATABASE_URL}
     ports:
-      - "${USER_SERVICE_PORT:-3001}:3001"
+      - "${USER_SERVICE_PORT}:${USER_SERVICE_PORT}"
     networks:
       - microservices-net
     depends_on:
@@ -181,10 +181,10 @@ services:
     container_name: event-service
     env_file: .env
     environment:
-      PORT: ${EVENT_SERVICE_PORT:-3002}
-      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres123}@postgres-event:5432/event_db
+      PORT: ${EVENT_SERVICE_PORT}
+      DATABASE_URL: ${EVENT_DATABASE_URL}
     ports:
-      - "${EVENT_SERVICE_PORT:-3002}:3002"
+      - "${EVENT_SERVICE_PORT}:${EVENT_SERVICE_PORT}"
     networks:
       - microservices-net
     depends_on:
@@ -203,10 +203,10 @@ services:
     container_name: notification-service
     env_file: .env
     environment:
-      PORT: ${NOTIFICATION_SERVICE_PORT:-3003}
-      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres123}@postgres-notification:5432/notification_db
+      PORT: ${NOTIFICATION_SERVICE_PORT}
+      DATABASE_URL: ${NOTIFICATION_DATABASE_URL}
     ports:
-      - "${NOTIFICATION_SERVICE_PORT:-3003}:3003"
+      - "${NOTIFICATION_SERVICE_PORT}:${NOTIFICATION_SERVICE_PORT}"
     networks:
       - microservices-net
     depends_on:
@@ -223,10 +223,10 @@ services:
     container_name: search-service
     env_file: .env
     environment:
-      PORT: ${SEARCH_SERVICE_PORT:-3004}
-      DATABASE_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres123}@postgres-search:5432/search_db
+      PORT: ${SEARCH_SERVICE_PORT}
+      DATABASE_URL: ${SEARCH_DATABASE_URL}
     ports:
-      - "${SEARCH_SERVICE_PORT:-3004}:3004"
+      - "${SEARCH_SERVICE_PORT}:${SEARCH_SERVICE_PORT}"
     networks:
       - microservices-net
     depends_on:

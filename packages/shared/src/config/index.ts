@@ -1,24 +1,22 @@
 import { z } from 'zod';
 
-// ─── Environment config schema with Zod ───────────────────────
-
 const baseEnvSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   LOG_LEVEL: z.enum(['error', 'warn', 'info', 'debug', 'verbose']).default('info'),
 });
 
 const redisEnvSchema = z.object({
-  REDIS_HOST: z.string().default('redis'),
-  REDIS_PORT: z.coerce.number().default(6379),
-  REDIS_PASSWORD: z.string().default('redis123'),
+  REDIS_HOST: z.string().min(1),
+  REDIS_PORT: z.coerce.number().int().positive(),
+  REDIS_PASSWORD: z.string().min(1),
 });
 
 const rabbitmqEnvSchema = z.object({
-  RABBITMQ_HOST: z.string().default('rabbitmq'),
-  RABBITMQ_PORT: z.coerce.number().default(5672),
-  RABBITMQ_USER: z.string().default('admin'),
-  RABBITMQ_PASSWORD: z.string().default('rabbit123'),
-  RABBITMQ_VHOST: z.string().default('/'),
+  RABBITMQ_HOST: z.string().min(1),
+  RABBITMQ_PORT: z.coerce.number().int().positive(),
+  RABBITMQ_USER: z.string().min(1),
+  RABBITMQ_PASSWORD: z.string().min(1),
+  RABBITMQ_VHOST: z.string().min(1),
 });
 
 const jwtEnvSchema = z.object({
@@ -27,45 +25,47 @@ const jwtEnvSchema = z.object({
   JWT_REFRESH_EXPIRES_IN: z.string().default('7d'),
 });
 
-// ─── Per-service schemas ───────────────────────────────────────
-
 export const gatewayEnvSchema = baseEnvSchema
   .merge(redisEnvSchema)
   .merge(rabbitmqEnvSchema)
   .merge(jwtEnvSchema)
   .extend({
-    PORT: z.coerce.number().default(3000),
+    PORT: z.coerce.number().int().positive(),
     USER_SERVICE_URL: z.string().url(),
     EVENT_SERVICE_URL: z.string().url(),
     NOTIFICATION_SERVICE_URL: z.string().url(),
     SEARCH_SERVICE_URL: z.string().url(),
-    RATE_LIMIT_WINDOW_MS: z.coerce.number().default(60000),
-    RATE_LIMIT_MAX: z.coerce.number().default(100),
+    RATE_LIMIT_WINDOW_MS: z.coerce.number().int().positive(),
+    RATE_LIMIT_MAX: z.coerce.number().int().positive(),
+    AUTH_RATE_LIMIT_WINDOW_MS: z.coerce.number().int().positive(),
+    AUTH_RATE_LIMIT_MAX: z.coerce.number().int().positive(),
+    HEALTH_PING_TIMEOUT_MS: z.coerce.number().int().positive(),
+    CORS_ORIGIN: z.string().min(1),
+    CB_TIMEOUT_MS: z.coerce.number().int().positive(),
+    CB_ERROR_THRESHOLD_PERCENT: z.coerce.number().int().min(1).max(100),
+    CB_RESET_TIMEOUT_MS: z.coerce.number().int().positive(),
+    CB_VOLUME_THRESHOLD: z.coerce.number().int().positive(),
   });
 
 export const serviceEnvSchema = baseEnvSchema
   .merge(redisEnvSchema)
   .merge(rabbitmqEnvSchema)
+  .merge(jwtEnvSchema)
   .extend({
-    PORT: z.coerce.number(),
+    PORT: z.coerce.number().int().positive(),
     DATABASE_URL: z.string().min(1),
-    JWT_SECRET: z.string().min(16),
   });
-
-// ─── Config loader ────────────────────────────────────────────
 
 export function loadConfig<T extends z.ZodTypeAny>(schema: T): z.infer<T> {
   const result = schema.safeParse(process.env);
   if (!result.success) {
     const issues = result.error.issues
-      .map((i) => `  • ${i.path.join('.')}: ${i.message}`)
+      .map((issue) => `  - ${issue.path.join('.')}: ${issue.message}`)
       .join('\n');
-    throw new Error(`❌ Invalid environment configuration:\n${issues}`);
+    throw new Error(`Invalid environment configuration:\n${issues}`);
   }
   return result.data as z.infer<T>;
 }
-
-// ─── RabbitMQ exchange/queue constants ────────────────────────
 
 export const EXCHANGES = {
   EVENTS: 'events.exchange',

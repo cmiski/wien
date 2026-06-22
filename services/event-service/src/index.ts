@@ -1,11 +1,11 @@
 import 'dotenv/config';
 import 'express-async-errors';
 import express from 'express';
-import { createLogger } from '@api-gateway-ms/shared';
+import { createLogger, loadConfig, serviceEnvSchema } from '@api-gateway-ms/shared';
 
 const logger = createLogger('event-service');
+const config = loadConfig(serviceEnvSchema);
 const app = express();
-const PORT = process.env.PORT ?? 3002;
 
 app.use(express.json());
 
@@ -13,8 +13,8 @@ app.get('/health', (_req, res) => {
   res.json({ service: 'event-service', status: 'healthy', timestamp: new Date().toISOString() });
 });
 
-const server = app.listen(PORT, () => {
-  logger.info(`Event Service listening on port ${String(PORT)}`);
+const server = app.listen(config.PORT, () => {
+  logger.info(`Event Service listening on port ${String(config.PORT)}`);
 });
 
 const shutdown = () => {

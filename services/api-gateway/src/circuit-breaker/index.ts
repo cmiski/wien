@@ -1,7 +1,13 @@
 import CircuitBreaker from 'opossum';
-import { createLogger, ServiceUnavailableError } from '@api-gateway-ms/shared';
+import {
+  createLogger,
+  gatewayEnvSchema,
+  loadConfig,
+  ServiceUnavailableError,
+} from '@api-gateway-ms/shared';
 
 const logger = createLogger('api-gateway');
+const config = loadConfig(gatewayEnvSchema);
 
 export interface ServiceConfig {
   name: string;
@@ -9,10 +15,10 @@ export interface ServiceConfig {
 }
 
 const BREAKER_OPTIONS: CircuitBreaker.Options = {
-  timeout: parseInt(process.env.CB_TIMEOUT_MS ?? '5000', 10),
-  errorThresholdPercentage: parseInt(process.env.CB_ERROR_THRESHOLD_PERCENT ?? '50', 10),
-  resetTimeout: parseInt(process.env.CB_RESET_TIMEOUT_MS ?? '15000', 10),
-  volumeThreshold: parseInt(process.env.CB_VOLUME_THRESHOLD ?? '5', 10),
+  timeout: config.CB_TIMEOUT_MS,
+  errorThresholdPercentage: config.CB_ERROR_THRESHOLD_PERCENT,
+  resetTimeout: config.CB_RESET_TIMEOUT_MS,
+  volumeThreshold: config.CB_VOLUME_THRESHOLD,
 };
 
 const breakers = new Map<string, CircuitBreaker>();

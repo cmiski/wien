@@ -1,10 +1,7 @@
 import rateLimit from 'express-rate-limit';
-import { RateLimitError } from '@api-gateway-ms/shared';
+import { gatewayEnvSchema, loadConfig, RateLimitError } from '@api-gateway-ms/shared';
 
-const WINDOW_MS = parseInt(process.env.RATE_LIMIT_WINDOW_MS ?? '60000', 10);
-const MAX = parseInt(process.env.RATE_LIMIT_MAX ?? '100', 10);
-const AUTH_WINDOW_MS = parseInt(process.env.AUTH_RATE_LIMIT_WINDOW_MS ?? '900000', 10); // 15 min
-const AUTH_MAX = parseInt(process.env.AUTH_RATE_LIMIT_MAX ?? '10', 10);
+const config = loadConfig(gatewayEnvSchema);
 
 /**
  * General rate limiter - applies to all routes.
@@ -12,8 +9,8 @@ const AUTH_MAX = parseInt(process.env.AUTH_RATE_LIMIT_MAX ?? '10', 10);
  * swap to RedisStore for multi-instance horizontal scaling).
  */
 export const generalRateLimiter = rateLimit({
-  windowMs: WINDOW_MS,
-  max: MAX,
+  windowMs: config.RATE_LIMIT_WINDOW_MS,
+  max: config.RATE_LIMIT_MAX,
   standardHeaders: true,
   legacyHeaders: false,
   keyGenerator: (req) => {
@@ -29,8 +26,8 @@ export const generalRateLimiter = rateLimit({
  * Strict limiter for auth routes (login, register).
  */
 export const authRateLimiter = rateLimit({
-  windowMs: AUTH_WINDOW_MS,
-  max: AUTH_MAX,
+  windowMs: config.AUTH_RATE_LIMIT_WINDOW_MS,
+  max: config.AUTH_RATE_LIMIT_MAX,
   standardHeaders: true,
   legacyHeaders: false,
   keyGenerator: (req) => req.ip ?? 'unknown',

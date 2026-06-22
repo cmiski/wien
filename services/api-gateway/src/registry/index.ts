@@ -1,3 +1,5 @@
+import { gatewayEnvSchema, loadConfig } from '@api-gateway-ms/shared';
+
 /**
  * Static service registry - reads from environment variables.
  * Can be extended to a dynamic registry (Consul, etcd) later.
@@ -8,25 +10,27 @@ export interface ServiceEntry {
   healthPath: string;
 }
 
+const config = loadConfig(gatewayEnvSchema);
+
 export const serviceRegistry: Record<string, ServiceEntry> = {
   'user-service': {
     name: 'user-service',
-    url: process.env.USER_SERVICE_URL ?? 'http://user-service:3001',
+    url: config.USER_SERVICE_URL,
     healthPath: '/health',
   },
   'event-service': {
     name: 'event-service',
-    url: process.env.EVENT_SERVICE_URL ?? 'http://event-service:3002',
+    url: config.EVENT_SERVICE_URL,
     healthPath: '/health',
   },
   'notification-service': {
     name: 'notification-service',
-    url: process.env.NOTIFICATION_SERVICE_URL ?? 'http://notification-service:3003',
+    url: config.NOTIFICATION_SERVICE_URL,
     healthPath: '/health',
   },
   'search-service': {
     name: 'search-service',
-    url: process.env.SEARCH_SERVICE_URL ?? 'http://search-service:3004',
+    url: config.SEARCH_SERVICE_URL,
     healthPath: '/health',
   },
 };

@@ -1,14 +1,13 @@
 import 'dotenv/config';
 import app from './app';
-import { createLogger } from '@api-gateway-ms/shared';
+import { createLogger, gatewayEnvSchema, loadConfig } from '@api-gateway-ms/shared';
 
 const logger = createLogger('api-gateway');
-const PORT = process.env.PORT ?? 3000;
+const config = loadConfig(gatewayEnvSchema);
 
-const server = app.listen(PORT, () => {
-  logger.info(`API Gateway running on port ${String(PORT)}`);
-  logger.info(`   Health: http://localhost:${String(PORT)}/health`);
-  logger.info(`   Environment: ${process.env.NODE_ENV ?? 'development'}`);
+const server = app.listen(config.PORT, () => {
+  logger.info(`API Gateway running on port ${String(config.PORT)}`);
+  logger.info(`Environment: ${config.NODE_ENV}`);
 });
 
 const shutdown = (signal: string) => {

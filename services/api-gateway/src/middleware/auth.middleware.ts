@@ -5,6 +5,8 @@ import {
   UnauthorizedError,
   ForbiddenError,
   UserRole,
+  gatewayEnvSchema,
+  loadConfig,
 } from '@api-gateway-ms/shared';
 
 // Extend Express Request to carry the decoded user
@@ -18,7 +20,7 @@ declare global {
   }
 }
 
-const JWT_SECRET = process.env.JWT_SECRET ?? '';
+const config = loadConfig(gatewayEnvSchema);
 
 /**
  * Verify JWT and attach decoded payload to req.user.
@@ -38,7 +40,7 @@ export const authenticate = (
   const token = authHeader.slice(7);
 
   try {
-    const payload = jwt.verify(token, JWT_SECRET) as JwtPayload;
+    const payload = jwt.verify(token, config.JWT_SECRET) as JwtPayload;
     req.user = payload;
     next();
   } catch (err) {
@@ -62,7 +64,7 @@ export const optionalAuthenticate = (
   if (authHeader?.startsWith('Bearer ')) {
     const token = authHeader.slice(7);
     try {
-      req.user = jwt.verify(token, JWT_SECRET) as JwtPayload;
+      req.user = jwt.verify(token, config.JWT_SECRET) as JwtPayload;
     } catch {
       // swallow — optional auth
     }

@@ -2,18 +2,17 @@ import { Router, Request, Response } from 'express';
 import axios from 'axios';
 import { serviceRegistry } from '../registry';
 import { getBreakerStats } from '../circuit-breaker';
-import { HealthStatus } from '@api-gateway-ms/shared';
+import { gatewayEnvSchema, HealthStatus, loadConfig } from '@api-gateway-ms/shared';
 
 const router = Router();
 const startTime = Date.now();
-
-const PING_TIMEOUT_MS = parseInt(process.env.HEALTH_PING_TIMEOUT_MS ?? '3000', 10);
+const config = loadConfig(gatewayEnvSchema);
 
 /** Ping a downstream service health endpoint */
 const pingService = async (url: string, healthPath: string) => {
   const start = Date.now();
   try {
-    await axios.get(`${url}${healthPath}`, { timeout: PING_TIMEOUT_MS });
+    await axios.get(`${url}${healthPath}`, { timeout: config.HEALTH_PING_TIMEOUT_MS });
     return { status: HealthStatus.HEALTHY, latency: Date.now() - start };
   } catch {
     return { status: HealthStatus.UNHEALTHY, latency: Date.now() - start };

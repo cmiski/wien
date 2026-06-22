@@ -13,7 +13,7 @@ const isDev = process.env.NODE_ENV !== 'production';
 
 export const createLogger = (service: string) => {
   return winston.createLogger({
-    level: process.env.LOG_LEVEL ?? 'info',
+    level: process.env.LOG_LEVEL,
     defaultMeta: { service },
     format: combine(
       timestamp({ format: 'YYYY-MM-DD HH:mm:ss.SSS' }),

@@ -4,7 +4,7 @@
     "outDir": "./dist",
     "rootDir": "./src",
     "paths": {
-      "@api-gateway-ms/shared": ["../../packages/shared/src"]
+      "@api-gateway-ms/shared": ["../../packages/shared/dist"]
     }
   },
   "include": ["src/**/*"]
