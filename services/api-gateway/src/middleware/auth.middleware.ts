@@ -50,7 +50,7 @@ export const authenticate = (
 };
 
 /**
- * Optional auth — attaches user if token present, does not throw if missing.
+ * Optional auth - attaches user if token present, does not throw if missing.
  */
 export const optionalAuthenticate = (
   req: Request,

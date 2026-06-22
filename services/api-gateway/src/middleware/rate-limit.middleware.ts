@@ -3,9 +3,11 @@ import { RateLimitError } from '@api-gateway-ms/shared';
 
 const WINDOW_MS = parseInt(process.env.RATE_LIMIT_WINDOW_MS ?? '60000', 10);
 const MAX = parseInt(process.env.RATE_LIMIT_MAX ?? '100', 10);
+const AUTH_WINDOW_MS = parseInt(process.env.AUTH_RATE_LIMIT_WINDOW_MS ?? '900000', 10); // 15 min
+const AUTH_MAX = parseInt(process.env.AUTH_RATE_LIMIT_MAX ?? '10', 10);
 
 /**
- * General rate limiter — applies to all routes.
+ * General rate limiter - applies to all routes.
  * Uses in-memory store (suitable for single gateway instance;
  * swap to RedisStore for multi-instance horizontal scaling).
  */
@@ -27,8 +29,8 @@ export const generalRateLimiter = rateLimit({
  * Strict limiter for auth routes (login, register).
  */
 export const authRateLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,   // 15 min window
-  max: 10,                      // 10 attempts per window
+  windowMs: AUTH_WINDOW_MS,
+  max: AUTH_MAX,
   standardHeaders: true,
   legacyHeaders: false,
   keyGenerator: (req) => req.ip ?? 'unknown',

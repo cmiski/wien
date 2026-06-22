@@ -10,7 +10,7 @@ import {
 const logger = createLogger('api-gateway');
 
 /**
- * Central error handler — must be the last middleware registered.
+ * Central error handler - must be the last middleware registered.
  */
 export const errorHandler = (
   err: unknown,
@@ -42,7 +42,7 @@ export const errorHandler = (
 };
 
 /**
- * 404 handler — catches any unmatched routes.
+ * 404 handler - catches any unmatched routes.
  */
 export const notFoundHandler = (req: Request, _res: Response, next: NextFunction): void => {
   next(new AppError(`Route ${req.method} ${req.path} not found`, 'NOT_FOUND', 404));
