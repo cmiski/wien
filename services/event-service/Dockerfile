@@ -1,6 +1,8 @@
 # ─── Stage 1: Build ───────────────────────────────────────────
 FROM node:20-alpine AS builder
 
+RUN apk add --no-cache openssl
+
 WORKDIR /app
 
 COPY package.json package-lock.json* ./
@@ -19,6 +21,8 @@ RUN npm run build --workspace=services/event-service
 
 # ─── Stage 2: Production ──────────────────────────────────────
 FROM node:20-alpine AS production
+
+RUN apk add --no-cache openssl
 
 WORKDIR /app
 
