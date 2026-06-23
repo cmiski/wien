@@ -7,7 +7,9 @@ import {
   JwtPayload,
   UnauthorizedError,
   UserRole,
+  MessageEvent,
 } from '@api-gateway-ms/shared';
+import { publishUserEvent } from './event.publisher';
 import { config } from './config';
 import { prisma } from './prisma';
 import { toPublicUser } from './user.mapper';
@@ -84,7 +86,9 @@ export const registerUser = async (input: RegisterInput) => {
   });
 
   const tokens = await createTokens(user);
-  return { user: toPublicUser(user), tokens };
+  const publicUser = toPublicUser(user);
+  await publishUserEvent(MessageEvent.USER_CREATED, publicUser);
+  return { user: publicUser, tokens };
 };
 
 export const loginUser = async (input: LoginInput) => {
@@ -146,5 +150,7 @@ export const updateUserProfile = async (userId: string, input: UpdateProfileInpu
     where: { id: userId },
     data: input,
   });
-  return toPublicUser(user);
+  const publicUser = toPublicUser(user);
+  await publishUserEvent(MessageEvent.USER_UPDATED, publicUser);
+  return publicUser;
 };

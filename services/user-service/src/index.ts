@@ -3,6 +3,7 @@ import app from './app';
 import { createLogger } from '@api-gateway-ms/shared';
 import { config } from './config';
 import { prisma } from './prisma';
+import { closePublisher } from './event.publisher';
 
 const logger = createLogger('user-service');
 
@@ -13,10 +14,13 @@ const server = app.listen(config.PORT, () => {
 const shutdown = (signal: string) => {
   logger.info(`${signal} received - shutting down User Service`);
   server.close(() => {
-    prisma.$disconnect()
+    Promise.all([
+      prisma.$disconnect(),
+      closePublisher(),
+    ])
       .then(() => process.exit(0))
       .catch((err: unknown) => {
-        logger.error('Failed to disconnect Prisma client', { error: String(err) });
+        logger.error('Failed to shut down User Service cleanly', { error: String(err) });
         process.exit(1);
       });
   });

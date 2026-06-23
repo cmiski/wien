@@ -147,12 +147,20 @@ export const updateEvent = async (
     },
   });
 
+  const registrations = await prisma.eventRegistration.findMany({
+    where: { eventId, status: 'CONFIRMED' },
+  });
+  const userIds = registrations.map((r) => r.userId);
+
   const mapped = toEvent(event);
   await publishEventMessage(
     mapped.status === EventStatus.CANCELLED
       ? MessageEvent.EVENT_CANCELLED
       : MessageEvent.EVENT_UPDATED,
-    mapped
+    {
+      event: mapped,
+      userIds,
+    }
   );
   await publishSearchIndexUpdate(
     mapped.status === EventStatus.PUBLISHED
@@ -169,10 +177,18 @@ export const deleteEvent = async (eventId: string, user: JwtPayload): Promise<vo
   }
 
   assertCanManageEvent(user, existingEvent.organizerId);
+  const registrations = await prisma.eventRegistration.findMany({
+    where: { eventId, status: 'CONFIRMED' },
+  });
+  const userIds = registrations.map((r) => r.userId);
+
   await prisma.event.delete({ where: { id: eventId } });
   await publishEventMessage(MessageEvent.EVENT_CANCELLED, {
-    ...toEvent(existingEvent),
-    status: EventStatus.CANCELLED,
+    event: {
+      ...toEvent(existingEvent),
+      status: EventStatus.CANCELLED,
+    },
+    userIds,
   });
   await publishSearchIndexUpdate({ action: 'delete', type: 'event', id: eventId });
 };
