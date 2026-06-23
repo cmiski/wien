@@ -1,28 +1,43 @@
 import 'dotenv/config';
-import 'express-async-errors';
-import express from 'express';
-import { createLogger, loadConfig, serviceEnvSchema } from '@api-gateway-ms/shared';
+import app from './app';
+import { createLogger } from '@api-gateway-ms/shared';
+import { config } from './config';
+import { prisma } from './prisma';
+import { startConsumer, closeConsumer } from './event.consumer';
 
 const logger = createLogger('search-service');
-const config = loadConfig(serviceEnvSchema);
-const app = express();
-
-app.use(express.json());
-
-app.get('/health', (_req, res) => {
-  res.json({ service: 'search-service', status: 'healthy', timestamp: new Date().toISOString() });
-});
 
 const server = app.listen(config.PORT, () => {
   logger.info(`Search Service listening on port ${String(config.PORT)}`);
+  startConsumer().catch((err: unknown) => {
+    logger.error('Failed to start consumer on startup', { error: String(err) });
+  });
 });
 
-const shutdown = () => {
-  logger.info('Shutting down Search Service...');
-  server.close(() => process.exit(0));
+const shutdown = (signal: string) => {
+  logger.info(`${signal} received - shutting down Search Service`);
+  server.close(() => {
+    Promise.all([
+      prisma.$disconnect(),
+      closeConsumer(),
+    ])
+      .then(() => process.exit(0))
+      .catch((err: unknown) => {
+        logger.error('Failed to shut down Search Service cleanly', { error: String(err) });
+        process.exit(1);
+      });
+  });
 };
 
-process.on('SIGTERM', shutdown);
-process.on('SIGINT', shutdown);
+process.on('SIGTERM', () => shutdown('SIGTERM'));
+process.on('SIGINT', () => shutdown('SIGINT'));
 
-export default app;
+process.on('uncaughtException', (err) => {
+  logger.error('Uncaught exception', { error: err.message, stack: err.stack });
+  process.exit(1);
+});
+
+process.on('unhandledRejection', (reason) => {
+  logger.error('Unhandled rejection', { reason: String(reason) });
+  process.exit(1);
+});
