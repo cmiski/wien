@@ -1,4 +1,5 @@
 # API Gateway Microservices Architecture
+Intern ID: CITS670
 
 A production-grade, event-driven microservices architecture built with Node.js, TypeScript, and Express. The system coordinates user management, event publishing/registration, and real-time notifications with centralized request routing, authorization, and rate limiting handled by an API Gateway.
 
